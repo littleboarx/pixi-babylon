@@ -7,7 +7,6 @@ import { Application, ApplicationOptions } from 'pixi.js'
 /**
  * Configuration options for Babylon scene
  */
-
 /**
  * Combined application instance containing both PIXI and Babylon
  */
@@ -18,12 +17,17 @@ export interface PixiBabylonApp {
     babylonScene: Scene
     /** Babylon Engine instance */
     babylonEngine: Engine
+    /** Start the combined render loop */
+    start(): void
+    /** Stop the render loop */
+    stop(): void
+    /** Destroy both applications */
+    destroy(): void
 }
 
 /**
  * Options for render loop configuration
  */
-
 /**
  * Dynamic texture options for PIXI-to-Babylon texture sharing
  */

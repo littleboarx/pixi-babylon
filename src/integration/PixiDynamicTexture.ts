@@ -7,6 +7,7 @@ import { Observer } from '@babylonjs/core/Misc/observable'
 import { Scene } from '@babylonjs/core/scene'
 import { Container, GlTextureSystem, Rectangle, Renderer, RenderTexture } from 'pixi.js'
 
+import { PixiBabylonApplication } from '../core/PixiBabylonApp.ts'
 import { DynamicTextureOptions } from '../types.js'
 
 import { BabylonTextureFilter } from './BabylonTextureFilter.js'
@@ -68,15 +69,13 @@ export class PixiDynamicTexture<T extends Container = Container> extends RawText
      * @param container - The PIXI container to render as texture
      * @param size - Target size for the texture (defaults to container size)
      * @param options - Configuration options
-     * @param scene - Babylon.js scene (will use global context if not provided)
-     * @param renderer - PIXI renderer (will use global context if not provided)
+     * @param pixiBabylonApplication checkout Application
      */
     constructor(
         public readonly container: T,
         public readonly size: ISize = container,
         options: Partial<DynamicTextureOptions> = {},
-        private scene?: Scene,
-        private renderer?: Renderer
+        private pixiBabylonApplication = PixiBabylonApplication.lastCreateApplication
     ) {
         // Resolve default options
         const defaultOptions: Required<DynamicTextureOptions> = {
@@ -281,8 +280,7 @@ export class PixiDynamicTexture<T extends Container = Container> extends RawText
      * @param observable - The observable that fires before each render
      * @internal
      */
-    setRenderObservable(observable: any): void {
+    static setRenderObservable(observable: any): void {
         this.beforeRenderObservable = observable
-        this.setupUpdateBehavior()
     }
 }

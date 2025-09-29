@@ -1,4 +1,4 @@
-import { Filter } from 'pixi.js'
+import { Filter, GlProgram } from 'pixi.js'
 
 /**
  * Custom PIXI filter for handling Babylon.js texture compatibility
@@ -11,9 +11,7 @@ import { Filter } from 'pixi.js'
  * PIXI-rendered content displays correctly when used as a Babylon.js texture.
  */
 export class BabylonTextureFilter extends Filter {
-    /**
-     * Vertex shader that flips Y coordinates for Babylon.js compatibility
-     */
+    // language=glsl
     private static readonly VERTEX_SHADER = `
         attribute vec2 aVertexPosition;
         attribute vec2 aTextureCoord;
@@ -28,10 +26,7 @@ export class BabylonTextureFilter extends Filter {
             vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);
         }
     `
-
-    /**
-     * Fragment shader that handles alpha premultiplication correction
-     */
+    // language=glsl
     private static readonly FRAGMENT_SHADER = `
         precision mediump float;
 
@@ -53,8 +48,10 @@ export class BabylonTextureFilter extends Filter {
 
     constructor() {
         super({
-            vertex: BabylonTextureFilter.VERTEX_SHADER,
-            fragment: BabylonTextureFilter.FRAGMENT_SHADER,
+            glProgram: new GlProgram({
+                vertex: BabylonTextureFilter.VERTEX_SHADER,
+                fragment: BabylonTextureFilter.FRAGMENT_SHADER,
+            }),
         })
     }
 }
