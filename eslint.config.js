@@ -2,7 +2,6 @@
 const { FlatCompat } = require('@eslint/eslintrc')
 const js = require('@eslint/js')
 const eslintPluginPrettierRecommended = require('eslint-plugin-prettier/recommended')
-const pluginVue = require('eslint-plugin-vue')
 const globals = require('globals')
 const tsEslint = require('typescript-eslint')
 
@@ -46,10 +45,9 @@ module.exports = tsEslint.config(
             'dist',
             'static',
             '**/onelink-smart-script.js',
-            '**/cannon.js'
+            '**/cannon.js',
         ],
     },
-    // 配置检查文件后缀
     {
         languageOptions: {
             globals: {
@@ -58,23 +56,13 @@ module.exports = tsEslint.config(
         },
     },
     ...tsEslint.configs.recommended,
-    // vue 必须放在后面，因为vue需要覆盖掉languageOptions.parser
-    ...pluginVue.configs['flat/recommended'],
-    {
-        languageOptions: {
-            parserOptions: {
-                parser: '@typescript-eslint/parser',
-                ecmaFeatures: {
-                    jsx: true,
-                },
-            },
-        },
-    },
+
     eslintPluginPrettierRecommended,
     {
         rules: {
             '@typescript-eslint/no-var-requires': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-require-imports': 'off',
             'no-undef': 'off',
         },
     }
