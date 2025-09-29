@@ -1,0 +1,32 @@
+{
+    "extends": ["stylelint-config-standard", "stylelint-config-idiomatic-order"],
+    "plugins": ["stylelint-prettier"],
+    "overrides": [
+        {
+            "files": ["*.vue", "**/*.vue"],
+            "customSyntax": "postcss-html"
+        }
+    ],
+    "rules": {
+        "selector-pseudo-class-no-unknown": [
+            true,
+            {
+                "ignorePseudoClasses": ["deep", "global"]
+            }
+        ],
+        "selector-pseudo-element-no-unknown": [
+            true,
+            {
+                "ignorePseudoElements": ["v-deep", "v-global", "v-slotted"]
+            }
+        ],
+        "function-no-unknown": [
+            true,
+            {
+                "ignoreFunctions": ["v-bind"]
+            }
+        ],
+        "selector-id-pattern": null,
+        "prettier/prettier": true
+    }
+}
