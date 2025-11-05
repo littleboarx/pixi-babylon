@@ -5,7 +5,7 @@ import { ISize } from '@babylonjs/core/Maths'
 import { Observer } from '@babylonjs/core/Misc/observable'
 import { Container, GlTextureSystem, Rectangle, RenderTexture } from 'pixi.js'
 
-import { PixiBabylonApplication } from '../core/PixiBabylonApp.ts'
+import { PixiBabylonApplication } from '../core/PixiBabylonApp.js'
 
 import { BabylonTextureFilter } from './BabylonTextureFilter.js'
 

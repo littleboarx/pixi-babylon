@@ -1,5 +1,4 @@
 import { Engine } from '@babylonjs/core/Engines/engine'
-import { ThinEngine } from '@babylonjs/core/Engines/thinEngine'
 import { Observable } from '@babylonjs/core/Misc/observable'
 import { Scene } from '@babylonjs/core/scene'
 import { Application } from 'pixi.js'
@@ -7,7 +6,7 @@ import { Application } from 'pixi.js'
 import { createBabylonScene } from '../babylon/createBabylonScene.js'
 import { createPixiApp } from '../pixi/createPixiApp.js'
 
-import { babylonFix } from './babylonFix.ts'
+import { babylonFix } from './babylonFix.js'
 
 /**
  * Integrated application class that manages both PIXI and Babylon.js rendering

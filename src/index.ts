@@ -16,11 +16,8 @@ export { createBabylonScene } from './babylon/createBabylonScene.js'
 export { PixiBabylonApplication } from './core/PixiBabylonApp.js'
 
 // Advanced integration features
-export { PixiTexture } from './integration/PixiTexture.ts'
+export { PixiTexture } from './integration/PixiTexture.js'
 export { BabylonTextureFilter } from './integration/BabylonTextureFilter.js'
-
-// Advanced patch methods - For experienced users
-export * from './patches/index.js'
 
 /**
  * Quick start function that creates a complete PIXI-Babylon application

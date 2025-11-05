@@ -1,4 +1,4 @@
-import { Application, ApplicationOptions, Container, WebGLRenderer } from 'pixi.js'
+import { Application, ApplicationOptions } from 'pixi.js'
 
 /**
  * Creates a PIXI application with enhanced configuration options

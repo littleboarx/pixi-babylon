@@ -7,7 +7,7 @@ export function babylonFix(engine: Engine) {
     }
     fixed = true
     const old = HDRFiltering.prototype['_prefilterInternal']
-    HDRFiltering.prototype['_prefilterInternal'] = function (...args) {
+    HDRFiltering.prototype['_prefilterInternal'] = function (...args: any[]) {
         // reset gl state to avoid GL state pollution
         engine.wipeCaches(true)
         old.apply(this, args)
