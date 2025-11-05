@@ -19,6 +19,7 @@
   ],
   "scripts": {
     "build": "vite build",
+    "build:demo": "vite build --config vite.playground.config.ts",
     "dev": "vite ./playground ",
     "test": "jest",
     "lint": "eslint src --ext .ts",

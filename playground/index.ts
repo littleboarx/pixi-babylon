@@ -7,12 +7,12 @@ import { PixiTexture, createPixiBabylon } from '../src'
 
 const app = await createPixiBabylon()
 const { scene } = app
-await import('@babylonjs/inspector')
-scene.debugLayer?.show({
-    globalRoot: document.body,
-    overlay: true,
-    // embedMode: true,
-})
+// await import('@babylonjs/inspector')
+// scene.debugLayer?.show({
+//     globalRoot: document.body,
+//     overlay: true,
+//     // embedMode: true,
+// })
 document.body.appendChild(app.engine._renderingCanvas!)
 const hello = new Text('hello!')
 const right = new Text({
