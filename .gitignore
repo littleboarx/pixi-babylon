@@ -1,5 +1,6 @@
 node_modules
 .yarn
 dist
+dist-*
 .idea
 !.yarn/install-state.gz
