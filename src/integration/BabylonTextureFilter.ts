@@ -20,12 +20,9 @@ const VERTEX_SHADER = `
 
     vec2 filterTextureCoord( void )
     {
-        // 翻转Y轴：将aPosition.y从[0,1]映射到[1,0]
+        // Flip Y axis: map aPosition.y from [0,1] to [1,0]
         vec2 flippedPosition = vec2(aPosition.x, 1.0 - aPosition.y);
-
-        // 如果需要水平翻转，使用下面这行
-        // vec2 flippedPosition = vec2(1.0 - aPosition.x, 1.0 - aPosition.y);
-
+        
         return flippedPosition * (uOutputFrame.zw * uInputSize.zw);
     }
 
