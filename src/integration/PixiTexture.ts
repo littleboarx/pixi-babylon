@@ -1,17 +1,22 @@
-import { WebGLHardwareTexture } from '@babylonjs/core/Engines'
 import { Constants } from '@babylonjs/core/Engines/constants'
 import { Engine } from '@babylonjs/core/Engines/engine'
 import { RawTexture } from '@babylonjs/core/Materials/Textures/rawTexture'
 import { ISize } from '@babylonjs/core/Maths'
 import { Observer } from '@babylonjs/core/Misc/observable'
-import { Scene } from '@babylonjs/core/scene'
-import { Container, GlTextureSystem, Rectangle, Renderer, RenderTexture } from 'pixi.js'
+import { Container, GlTextureSystem, Rectangle, RenderTexture } from 'pixi.js'
 
 import { PixiBabylonApplication } from '../core/PixiBabylonApp.ts'
-import { DynamicTextureOptions } from '../types.js'
 
 import { BabylonTextureFilter } from './BabylonTextureFilter.js'
 
+export interface DynamicTextureOptions {
+    /** Whether to automatically update the texture */
+    autoUpdate?: boolean
+    /** Name identifier for the texture */
+    name?: string
+    /** Resolution multiplier for the render texture */
+    resolution?: number
+}
 /**
  * PixiDynamicTexture allows rendering any PIXI object as a Babylon.js texture
  *
@@ -44,7 +49,7 @@ import { BabylonTextureFilter } from './BabylonTextureFilter.js'
  * material.diffuseTexture = dynamicTexture
  * ```
  */
-export class PixiDynamicTexture<T extends Container = Container> extends RawTexture {
+export class PixiTexture<T extends Container = Container> extends RawTexture {
     /** Configuration options for the dynamic texture */
     public readonly options: Required<DynamicTextureOptions>
 
@@ -58,10 +63,9 @@ export class PixiDynamicTexture<T extends Container = Container> extends RawText
     public readonly renderSize: { width: number; height: number }
 
     /** Root container that wraps the user's container with filters */
-    public readonly rootContainer = new Container()
+    public readonly rootPixiContainer = new Container()
 
     private observer?: Observer<void>
-    private beforeRenderObservable?: any // Will be set by context
 
     /**
      * Creates a new PixiDynamicTexture
@@ -75,8 +79,13 @@ export class PixiDynamicTexture<T extends Container = Container> extends RawText
         public readonly container: T,
         public readonly size: ISize = container,
         options: Partial<DynamicTextureOptions> = {},
-        private pixiBabylonApplication = PixiBabylonApplication.lastCreateApplication
+        private pixiBabylonApplication = PixiBabylonApplication.lastCreateApplication!
     ) {
+        if (!pixiBabylonApplication) {
+            throw new Error('not context provide!')
+        }
+        const renderer = pixiBabylonApplication?.pixiApp.renderer
+        const { scene } = pixiBabylonApplication
         // Resolve default options
         const defaultOptions: Required<DynamicTextureOptions> = {
             autoUpdate: false,
@@ -117,14 +126,14 @@ export class PixiDynamicTexture<T extends Container = Container> extends RawText
         // Babylon textures don't use premultiplied alpha by default, but PIXI does
         this.filter = new BabylonTextureFilter()
         this.filter.resolution = 'inherit'
-        this.rootContainer.filters = [this.filter]
-        this.rootContainer.filterArea = new Rectangle(
+        this.rootPixiContainer.filters = [this.filter]
+        this.rootPixiContainer.filterArea = new Rectangle(
             0,
             0,
             normalizedSize.width,
             normalizedSize.height
         )
-        this.rootContainer.addChild(this.container)
+        this.rootPixiContainer.addChild(this.container)
 
         // Create PIXI render texture
         const renderTexture = RenderTexture.create({
@@ -160,25 +169,21 @@ export class PixiDynamicTexture<T extends Container = Container> extends RawText
      * @param clear - Whether to clear the render texture before rendering
      */
     public sync(clear: boolean = true): void {
-        if (!this.renderer || !this.scene) {
-            console.warn('PixiDynamicTexture: Renderer or scene not available for sync')
-            return
-        }
-
-        const engine = this.scene.getEngine() as Engine
-        const gl = engine._gl
+        const {
+            pixiApp: { renderer },
+            gl,
+        } = this.pixiBabylonApplication
 
         // Prepare for PIXI rendering
         gl.clearColor(0, 0, 0, 0)
-        this.renderer.resetState()
+        renderer.resetState()
 
         // Render PIXI content to render texture
-        this.renderer.render({
+        renderer.render({
             target: this.renderTexture,
-            container: this.rootContainer,
+            container: this.rootPixiContainer,
             clear: clear,
         })
-
         // Clean up WebGL state for Babylon.js
         gl.bindVertexArray(null)
         gl.bindFramebuffer(gl.FRAMEBUFFER, null)
@@ -189,49 +194,14 @@ export class PixiDynamicTexture<T extends Container = Container> extends RawText
      * This ensures the texture is ready before the next Babylon.js render frame
      *
      * @returns Promise that resolves when the texture has been updated
-     *
-     * @example
-     * ```typescript
-     * // Update PIXI content
-     * sprite.x = 100
-     * text.text = 'Updated!'
-     *
-     * // Ensure texture is updated before next frame
-     * await dynamicTexture.render()
-     * ```
      */
     async render(): Promise<void> {
         return new Promise<void>(resolve => {
-            if (this.beforeRenderObservable) {
-                this.beforeRenderObservable.addOnce(() => {
-                    this.sync(true)
-                    resolve()
-                })
-            }
+            this.pixiBabylonApplication.beforeRenderObservable.addOnce(() => {
+                this.sync(true)
+                resolve()
+            })
         })
-    }
-
-    /**
-     * Updates the auto-update behavior
-     *
-     * @param autoUpdate - Whether to automatically update the texture each frame
-     */
-    public setAutoUpdate(autoUpdate: boolean): void {
-        if (this.options.autoUpdate === autoUpdate) {
-            return
-        }
-
-        // Update options
-        ;(this.options as any).autoUpdate = autoUpdate
-
-        // Clean up existing observer
-        if (this.observer) {
-            this.observer.remove()
-            this.observer = undefined
-        }
-
-        // Set up new observer if needed
-        this.setupUpdateBehavior()
     }
 
     /**
@@ -240,13 +210,15 @@ export class PixiDynamicTexture<T extends Container = Container> extends RawText
      */
     dispose(): void {
         super.dispose()
-
         if (this.observer) {
             this.observer.remove()
         }
-
         this.renderTexture.destroy(true)
-        this.rootContainer.destroy({ children: false }) // Don't destroy user's container
+        this.rootPixiContainer.destroy({ children: false }) // Don't destroy user's container
+    }
+
+    get beforeRenderObservable() {
+        return this.pixiBabylonApplication.beforeRenderObservable
     }
 
     /**
@@ -271,16 +243,5 @@ export class PixiDynamicTexture<T extends Container = Container> extends RawText
                 this.sync(true)
             })
         }
-    }
-
-    /**
-     * Sets the render observable for automatic updates
-     * This is typically called by the integration context
-     *
-     * @param observable - The observable that fires before each render
-     * @internal
-     */
-    static setRenderObservable(observable: any): void {
-        this.beforeRenderObservable = observable
     }
 }

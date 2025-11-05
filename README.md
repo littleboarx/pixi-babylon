@@ -24,12 +24,12 @@ yarn add pixi-babylon pixi.js @babylonjs/core
 ### Basic Usage
 
 ```typescript
-import { quickStart } from 'pixi-babylon'
+import { createPixiBabylon } from 'pixi-babylon'
 import * as PIXI from 'pixi.js'
 import { MeshBuilder } from '@babylonjs/core'
 
 // Create integrated application
-const app = await quickStart({
+const app = await createPixiBabylon({
   canvas: '#game-canvas',
   width: 1024,
   height: 768,
@@ -70,46 +70,12 @@ app.start()
 ```
 
 ## 🎯 Core Features
-
-### 1. PIXI Application Creation
-
+### 1. PIXI-based UI layer render
 ```typescript
-import { createPixiApp } from 'pixi-babylon'
 
-// Basic PIXI app
-const app = await createPixiApp({
-  width: 800,
-  height: 600,
-  backgroundColor: 0x1099bb,
-  antialias: true
-})
-
-// With custom canvas
-const app2 = await createPixiApp({
-  canvas: '#my-canvas',
-  width: 1024,
-  height: 768
-})
 ```
 
-### 2. Babylon Scene Creation
-
-```typescript
-import { createBabylonScene } from 'pixi-babylon'
-
-// Basic scene with default camera and lighting
-const { engine, scene, camera, light } = await createBabylonScene({
-  canvas: '#babylon-canvas',
-  autoStart: true
-})
-
-// Minimal scene for advanced users
-import { createMinimalBabylonScene } from 'pixi-babylon'
-const { engine, scene } = createMinimalBabylonScene(canvas)
-// Add your own camera and lighting...
-```
-
-### 3. Cross-Engine Texture Sharing
+### 2. Cross-Engine Texture Sharing
 
 Convert PIXI containers to Babylon textures:
 
@@ -139,161 +105,19 @@ const plane = MeshBuilder.CreatePlane('plane', { size: 4 }, scene)
 plane.material = material
 ```
 
-### 4. Render Loop Control
-
-```typescript
-const app = await PixiBabylonApplication.create(config)
-
-// Control render loop
-app.start()  // Start rendering
-app.stop()   // Stop rendering
-app.destroy() // Clean up resources
-
-// Listen to render events
-app.beforeRenderObservable.add(() => {
-  // Code that runs before each frame
-})
-
-app.afterRenderObservable.add(() => {
-  // Code that runs after each frame
-})
-```
-
 ## 🔧 Advanced Usage
-
-### Custom Render Loops
-
-For users who need fine control over the rendering process:
-
-```typescript
-import { patches } from 'pixi-babylon'
-
-const stopRenderLoop = patches.createCustomRenderLoop(scene, pixiApp, {
-  clearStencil: true,
-  pixiRenderOrder: 'before', // Render PIXI before Babylon
-  clearColor: { r: 0.1, g: 0.1, b: 0.2, a: 1.0 }
-})
-
-// Later, stop the custom loop
-stopRenderLoop()
-```
-
-### WebGL State Management
-
-Handle WebGL state transitions between engines:
-
-```typescript
-import { patches } from 'pixi-babylon'
-
-// Capture and restore WebGL state
-const gl = engine._gl
-const state = patches.captureWebGLState(gl)
-
-// ... perform custom rendering ...
-
-patches.restoreWebGLState(gl, state)
-
-// Or use convenience functions
-patches.withPixiState(pixiRenderer, engine, () => {
-  // PIXI rendering with automatic state management
-  pixiApp.render()
-})
-```
-
-### Context Sharing
-
-Set up shared context for advanced integrations:
-
-```typescript
-import { patches } from 'pixi-babylon'
-
-// Set up global context
-patches.setupSharedContext(scene, pixiApp)
-
-// Now PixiDynamicTexture works without explicit parameters
-const texture = new PixiDynamicTexture(container, { width: 256, height: 256 })
-
-// Multiple contexts
-const manager = patches.createContextManager()
-manager.register('game', gameScene, gamePixiApp)
-manager.register('ui', uiScene, uiPixiApp)
-manager.switchTo('game')
-```
-
-## 📚 API Reference
-
-### Core Classes
-
-#### `PixiBabylonApplication`
-
-Main integration class that manages both PIXI and Babylon rendering.
-
-```typescript
-class PixiBabylonApplication {
-  static create(config?, renderOptions?): Promise<PixiBabylonApplication>
-
-  pixi: Application
-  babylonScene: Scene
-  babylonEngine: Engine
-
-  start(): void
-  stop(): void
-  destroy(): void
-  updateRenderOptions(options): void
-
-  beforeRenderObservable: Observable<void>
-  afterRenderObservable: Observable<void>
-}
-```
-
-#### `PixiDynamicTexture`
-
-Converts PIXI containers to Babylon textures.
-
-```typescript
-class PixiDynamicTexture extends RawTexture {
-  constructor(container, size?, options?, scene?, renderer?)
-
-  sync(clear?): void
-  render(): Promise<void>
-  setAutoUpdate(autoUpdate): void
-  dispose(): void
-}
-```
-
-### Configuration Types
-
-```typescript
-interface PixiAppConfig extends ApplicationOptions {
-  canvas?: HTMLCanvasElement | string
-  autoStart?: boolean
-  backgroundColor?: number | string
-}
-
-interface BabylonSceneConfig {
-  canvas?: HTMLCanvasElement | string
-  engineOptions?: any
-  sceneOptions?: any
-  autoStart?: boolean
-}
-
-interface DynamicTextureOptions {
-  autoUpdate?: boolean
-  name?: string
-  resolution?: number
-}
-```
+TODO
 
 ## 🎮 Examples
 
 ### UI Overlay Example
 
 ```typescript
-import { quickStart, PixiDynamicTexture } from 'pixi-babylon'
+import { createPixiBabylon, PixiDynamicTexture } from 'pixi-babylon'
 import * as PIXI from 'pixi.js'
 import { MeshBuilder, StandardMaterial } from '@babylonjs/core'
 
-const app = await quickStart()
+const app = await createPixiBabylon()
 
 // Create UI container
 const uiContainer = new PIXI.Container()
@@ -322,48 +146,20 @@ setInterval(() => {
 }, 1000)
 ```
 
-### Particle System Integration
-
-```typescript
-import { PixiBabylonApplication } from 'pixi-babylon'
-import * as PIXI from 'pixi.js'
-
-const app = await PixiBabylonApplication.create()
-
-// PIXI particle emitter
-const emitter = new PIXI.ParticleContainer(1000, {
-  position: true,
-  rotation: true,
-  uvs: true,
-  alpha: true
-})
-app.pixi.stage.addChild(emitter)
-
-// 3D scene objects
-const boxes = []
-for (let i = 0; i < 10; i++) {
-  const box = MeshBuilder.CreateBox(`box${i}`, { size: 1 }, app.babylonScene)
-  box.position.x = (Math.random() - 0.5) * 10
-  boxes.push(box)
-}
-
-app.start()
-```
-
 ## 🛠️ Development
 
 ```bash
 # Install dependencies
-npm install
+yarn install
 
 # Build the library
-npm run build
+yarn run build
 
 # Run type checking
-npm run typecheck
+yarn run typecheck
 
 # Run linting
-npm run lint
+yarn run lint
 ```
 
 ## 📄 License
@@ -373,13 +169,3 @@ MIT
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📞 Support
-
-- 📚 Check the examples in `/examples` directory
-- 🐛 Report issues on GitHub
-- 💬 Join our Discord community
-
----
-
-Made with ❤️ for the WebGL community

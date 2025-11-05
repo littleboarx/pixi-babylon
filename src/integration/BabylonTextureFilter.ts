@@ -1,4 +1,59 @@
 import { Filter, GlProgram } from 'pixi.js'
+// language=glsl
+const VERTEX_SHADER = `
+    in vec2 aPosition;
+    out vec2 vTextureCoord;
+
+    uniform mediump vec4 uInputSize;
+    uniform vec4 uOutputFrame;
+    uniform vec4 uOutputTexture;
+
+    vec4 filterVertexPosition( void )
+    {
+        vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;
+
+        position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
+        position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
+
+        return vec4(position, 0.0, 1.0);
+    }
+
+    vec2 filterTextureCoord( void )
+    {
+        // 翻转Y轴：将aPosition.y从[0,1]映射到[1,0]
+        vec2 flippedPosition = vec2(aPosition.x, 1.0 - aPosition.y);
+
+        // 如果需要水平翻转，使用下面这行
+        // vec2 flippedPosition = vec2(1.0 - aPosition.x, 1.0 - aPosition.y);
+
+        return flippedPosition * (uOutputFrame.zw * uInputSize.zw);
+    }
+
+    void main(void)
+    {
+        gl_Position = filterVertexPosition();
+        vTextureCoord = filterTextureCoord();
+    }
+    `
+// language=glsl
+const FRAGMENT_SHADER = `
+    in vec2 vTextureCoord;
+
+    out vec4 finalColor;
+
+    uniform sampler2D uTexture;
+    uniform mediump vec4 uInputSize;
+
+    void main()
+    {
+        vec4 c = texture(uTexture, vTextureCoord);
+        if(c.a == 0.0) {
+            finalColor = vec4(0,0,0,0);
+        } else {
+            finalColor = vec4(c.rgb/ c.a,c.a);
+        }
+    }
+    `
 
 /**
  * Custom PIXI filter for handling Babylon.js texture compatibility
@@ -11,46 +66,11 @@ import { Filter, GlProgram } from 'pixi.js'
  * PIXI-rendered content displays correctly when used as a Babylon.js texture.
  */
 export class BabylonTextureFilter extends Filter {
-    // language=glsl
-    private static readonly VERTEX_SHADER = `
-        attribute vec2 aVertexPosition;
-        attribute vec2 aTextureCoord;
-
-        uniform mat3 projectionMatrix;
-
-        varying vec2 vTextureCoord;
-
-        void main(void) {
-            gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
-            // Flip Y coordinate for Babylon.js UV space
-            vTextureCoord = vec2(aTextureCoord.x, 1.0 - aTextureCoord.y);
-        }
-    `
-    // language=glsl
-    private static readonly FRAGMENT_SHADER = `
-        precision mediump float;
-
-        varying vec2 vTextureCoord;
-        uniform sampler2D uTexture;
-
-        void main(void) {
-            vec4 color = texture2D(uTexture, vTextureCoord);
-
-            // Convert from premultiplied alpha to non-premultiplied alpha
-            // This ensures proper blending in Babylon.js which expects non-premultiplied alpha
-            if (color.a > 0.0) {
-                color.rgb /= color.a;
-            }
-
-            gl_FragColor = color;
-        }
-    `
-
     constructor() {
         super({
             glProgram: new GlProgram({
-                vertex: BabylonTextureFilter.VERTEX_SHADER,
-                fragment: BabylonTextureFilter.FRAGMENT_SHADER,
+                vertex: VERTEX_SHADER,
+                fragment: FRAGMENT_SHADER,
             }),
         })
     }

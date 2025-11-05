@@ -11,25 +11,16 @@
 import { PixiBabylonApplication } from './core/PixiBabylonApp.js'
 
 // Out-of-box methods - Easy to use, works immediately
-export { createPixiApp, createLightweightPixiApp } from './pixi/createPixiApp.js'
-export { createBabylonScene, createMinimalBabylonScene } from './babylon/createBabylonScene.js'
+export { createPixiApp } from './pixi/createPixiApp.js'
+export { createBabylonScene } from './babylon/createBabylonScene.js'
 export { PixiBabylonApplication } from './core/PixiBabylonApp.js'
 
 // Advanced integration features
-export { PixiDynamicTexture } from './integration/PixiDynamicTexture.js'
+export { PixiTexture } from './integration/PixiTexture.ts'
 export { BabylonTextureFilter } from './integration/BabylonTextureFilter.js'
 
 // Advanced patch methods - For experienced users
 export * from './patches/index.js'
-
-// Type definitions
-export type {
-    PixiAppConfig,
-    BabylonSceneConfig,
-    PixiBabylonApp,
-    RenderLoopOptions,
-    DynamicTextureOptions,
-} from './types.js'
 
 /**
  * Quick start function that creates a complete PIXI-Babylon application
@@ -56,25 +47,6 @@ export type {
  * const box = MeshBuilder.CreateBox('box', {size: 2}, app.babylonScene)
  * ```
  */
-export async function quickStart(
-    config: {
-        canvas?: HTMLCanvasElement | string
-        width?: number
-        height?: number
-        backgroundColor?: number
-    } = {}
-): Promise<PixiBabylonApplication> {
-    return PixiBabylonApplication.create({
-        pixi: {
-            canvas: config.canvas,
-            width: config.width ?? 800,
-            height: config.height ?? 600,
-            backgroundColor: config.backgroundColor ?? 0x1099bb,
-            antialias: true,
-        },
-        babylon: {
-            canvas: config.canvas,
-            autoStart: true,
-        },
-    })
+export async function createPixiBabylon(): Promise<PixiBabylonApplication> {
+    return PixiBabylonApplication.create()
 }

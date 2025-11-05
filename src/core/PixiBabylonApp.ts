@@ -6,7 +6,8 @@ import { Application } from 'pixi.js'
 
 import { createBabylonScene } from '../babylon/createBabylonScene.js'
 import { createPixiApp } from '../pixi/createPixiApp.js'
-import { PixiBabylonApp } from '../types.js'
+
+import { babylonFix } from './babylonFix.ts'
 
 /**
  * Integrated application class that manages both PIXI and Babylon.js rendering
@@ -28,10 +29,10 @@ import { PixiBabylonApp } from '../types.js'
  * const box = MeshBuilder.CreateBox('box', {size: 2}, app.babylonScene)
  * ```
  */
-export class PixiBabylonApplication implements PixiBabylonApp {
-    public pixi!: Application
-    public babylonScene!: Scene
-    public babylonEngine!: Engine
+export class PixiBabylonApplication {
+    public pixiApp!: Application
+    public scene!: Scene
+    public engine!: Engine
     public gl!: WebGL2RenderingContext
 
     /** Observable that fires before each render frame */
@@ -55,17 +56,19 @@ export class PixiBabylonApplication implements PixiBabylonApp {
     ): Promise<PixiBabylonApplication> {
         if (!config.canvas) {
             config.canvas = document.createElement('canvas')
+            document.body.appendChild(config.canvas)
         }
         const app = new PixiBabylonApplication()
 
         // Initialize Babylon scene
         const { engine, scene } = await createBabylonScene(config.canvas)
+        babylonFix(engine)
         app.gl = engine._gl
         // Initialize PIXI application
-        app.pixi = await createPixiApp({}, config.canvas!, app.gl)
+        app.pixiApp = await createPixiApp({}, config.canvas!, app.gl)
 
-        app.babylonEngine = engine
-        app.babylonScene = scene
+        app.engine = engine
+        app.scene = scene
 
         return app
     }
@@ -75,17 +78,17 @@ export class PixiBabylonApplication implements PixiBabylonApp {
      * Renders both PIXI and Babylon content in the correct order
      */
     start(): void {
-        this.babylonEngine.onEndFrameObservable.add(() => {
-            this.babylonEngine.wipeCaches(true)
+        this.engine.onEndFrameObservable.add(() => {
+            this.engine.wipeCaches(true)
             this.renderPixi()
         })
-        this.babylonEngine.runRenderLoop(() => {
+        this.engine.runRenderLoop(() => {
             this.beforeRenderObservable.notifyObservers()
 
             // Render Babylon scene first (if there's an active camera)
-            if (this.babylonScene.activeCamera) {
-                this.babylonEngine.wipeCaches(true)
-                this.babylonScene.render()
+            if (this.scene.activeCamera) {
+                this.engine.wipeCaches(true)
+                this.scene.render()
             } else {
                 // Then render PIXI content
                 this.renderPixi()
@@ -95,8 +98,8 @@ export class PixiBabylonApplication implements PixiBabylonApp {
         })
 
         // Handle PIXI rendering at the end of each Babylon frame
-        this.babylonEngine.onEndFrameObservable.add(() => {
-            this.babylonEngine.wipeCaches(true)
+        this.engine.onEndFrameObservable.add(() => {
+            this.engine.wipeCaches(true)
             this.renderPixi()
         })
     }
@@ -107,9 +110,9 @@ export class PixiBabylonApplication implements PixiBabylonApp {
     destroy(): void {
         this.beforeRenderObservable.clear()
         this.afterRenderObservable.clear()
-        this.pixi.destroy()
-        this.babylonScene.dispose()
-        this.babylonEngine.dispose()
+        this.pixiApp.destroy()
+        this.scene.dispose()
+        this.engine.dispose()
     }
 
     /**
@@ -120,8 +123,8 @@ export class PixiBabylonApplication implements PixiBabylonApp {
         gl.disable(gl.STENCIL_TEST)
         gl.stencilMask(0xff)
         gl.clear(gl.STENCIL_BUFFER_BIT)
-        this.pixi.renderer.resetState()
-        this.pixi.render()
-        this.pixi.renderer.resetState()
+        this.pixiApp.renderer.resetState()
+        this.pixiApp.render()
+        this.pixiApp.renderer.resetState()
     }
 }
