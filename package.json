@@ -1,6 +1,6 @@
 {
   "name": "pixi-babylon",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Out-of-box integration library for PIXI 2D applications and Babylon 3D scenes with rendering loop",
   "main": "dist/index.umd.js",
   "module": "dist/index.esm.js",
