@@ -4,9 +4,9 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
     root: 'playground',
-    base: '/pixi-babylon/',
+    base: './',
     build: {
-        outDir: '../dist-demo',
+        outDir: '../docs',
         emptyOutDir: true,
         sourcemap: true,
     },
