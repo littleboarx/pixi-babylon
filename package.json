@@ -74,5 +74,5 @@
     "@babylonjs/core": "^8.0.0",
     "pixi.js": "^8.0.0"
   },
-  "packageManager": "yarn@4.9.1"
+  "packageManager": "yarn@4.10.3"
 }
