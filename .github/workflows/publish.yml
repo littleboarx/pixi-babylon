@@ -12,11 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       # Setup .npmrc file to publish to npm
+      - run: corepack enable
       - uses: actions/setup-node@v6
         with:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm i yarn@4 -g
       - run: yarn
       - run: yarn npm publish // for Yarn version 1, use `yarn publish` instead
         env:
