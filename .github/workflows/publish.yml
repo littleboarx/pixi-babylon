@@ -16,7 +16,6 @@ jobs:
         with:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
-          cache: 'yarn'
       - run: npm i yarn@4 -g
       - run: yarn
       - run: yarn npm publish // for Yarn version 1, use `yarn publish` instead
