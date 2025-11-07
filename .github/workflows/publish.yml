@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Setup tmate session  # 仅在失败时运行
-        uses: mxschmitt/action-tmate@v3
       # Setup .npmrc file to publish to npm
       - run: corepack enable
       - uses: actions/setup-node@v6
@@ -20,6 +18,9 @@ jobs:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
       - run: yarn
+      - name: Setup tmate session  # 仅在失败时运行
+        if: failure()  # 只在上一级步骤失败时执行
+        uses: mxschmitt/action-tmate@v3
       - run: yarn npm publish // for Yarn version 1, use `yarn publish` instead
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
