@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   publish-npm:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v5
       # Setup .npmrc file to publish to npm
